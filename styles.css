@@ -3,6 +3,22 @@
     --width: calc(var(--height)*250/550);
     --draw-piece:calc(var(--height)*25/550);
 }
+.header{
+    height:fit-content;
+    width:var(--width);
+    display:flex;
+    flex-direction: row;
+    margin:auto;
+    background-color: none;
+}
+.logo{
+    height:calc(var(--draw-piece)*4);
+    width:calc(var(--draw-piece)*4);
+    justify-content: stretch;
+}
+p{
+    font-size: calc(var(--draw-piece));
+}
 .game-container{
     height:fit-content;
     width:fit-content;
