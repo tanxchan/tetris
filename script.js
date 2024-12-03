@@ -14,6 +14,7 @@ const totalLockoutMoves = 10;
 
 //piece vars
 var curx = 0;
+var gx = 0;
 var cury = 0;
 var curPiece = 0;
 var curRot = 0;
@@ -43,6 +44,7 @@ var leftID = '';
 // - spin table
 // - fix soft drop
 // - make clearlines more efficient
+// - make a ghost piece
 
 for (let i = 0; i<totalRows; i++){
     let g = [];
@@ -474,6 +476,7 @@ function placePiece(n, x, y, r){
     if (tspin){
         console.log("t spun");
     }
+    removeGhost();
     fullLines();
 }
 function clearLines(lines){//clear an array full of lines
@@ -604,6 +607,7 @@ function rotate(n){
         }
         //console.log(filledCorners);
     }
+    removeGhost();
     for (let i = 0; i<pieceDim; i++){
         for (let j = 0; j<pieceDim; j++){
             if (p[i][j] == 1){
@@ -639,6 +643,7 @@ function rotate(n){
             fallID = setTimeout(()=>{fall()},gravityTime);
         }
     }
+    drawGhost();
     return true;
 }
 function pieceMove(n, x, y, r, newx, newy){
@@ -671,6 +676,7 @@ function pieceMove(n, x, y, r, newx, newy){
             }
         }
     }
+    removeGhost();
     if (startLockout){
         lockMoves++;
         clearTimeout(placeID);
@@ -686,12 +692,14 @@ function pieceMove(n, x, y, r, newx, newy){
 function pieceDown(){
     if (pieceMove(curPiece, curx, cury, curRot, curx+1, cury)){
         curx++;
+        drawGhost();
         return true;
     }return false;
 }
 function pieceUp(){
     if (pieceMove(curPiece, curx, cury, curRot, curx-1, cury)){
         curx--;
+        drawGhost();
         return true;
     }return false;
 }
@@ -708,6 +716,7 @@ function pieceRight(){
     }
     if (pieceMove(curPiece, curx, cury, curRot, curx, cury+1)){
         cury++;
+        drawGhost();
         return true;
     }return false;
 }
@@ -724,6 +733,7 @@ function pieceLeft(){
     }
     if (pieceMove(curPiece, curx, cury, curRot, curx, cury-1)){
         cury--;
+        drawGhost();
         return true;
     }return false;
 }
@@ -744,6 +754,7 @@ function dashRight(){
     }
     pieceMove(curPiece, curx, cury, curRot, curx, ny-1);
     cury = ny-1;
+    drawGhost();
 }
 function dashLeft(){
     let ny = cury;
@@ -753,6 +764,49 @@ function dashLeft(){
     }
     pieceMove(curPiece, curx, cury, curRot, curx, ny+1);
     cury = ny+1;
+    drawGhost();
+}
+function removeGhost(){
+    let p = pieces[curPiece][curRot];
+    for (let i = 0; i<pieceDim; i++){
+        for (let j = 0; j<pieceDim; j++){
+            if (p[i][j] == 1){
+                let sx, sy;
+                sx = gx-1+i;
+                sy = cury-1+j;
+                gb[sx][sy].style.borderColor = "transparent";
+            }
+        }
+    }
+}
+function drawGhost(){
+    let nx = curx;
+    let p = pieces[curPiece][curRot];
+    while (checkPieceCollision(p, nx-1, cury-1)){
+        nx++;
+    }
+    let fx = nx-1;
+    for (let i = 0; i<pieceDim; i++){
+        for (let j = 0; j<pieceDim; j++){
+            if (p[i][j] == 1){
+                let sx, sy;
+                sx = fx-1+i;
+                sy = cury-1+j;
+                gb[sx][sy].style.borderColor = pieceColors[curPiece];
+            }
+        }
+    }
+    gx = fx;
+    return fx;
+}
+function dashDown(){
+    let nx = curx;
+    let p = pieces[curPiece][curRot];
+    while (checkPieceCollision(p, nx-1, cury-1)){
+        nx++;
+    }
+    pieceMove(curPiece, curx, cury, curRot, nx-1, cury);
+    curx = nx-1;
 }
 function hardDrop(){
     //moving = true;
@@ -772,6 +826,7 @@ function hardDrop(){
     placePiece(curPiece, curx, cury, curRot);
 }
 function hold(){
+    removeGhost();
     clearTimeout(fallID);
     clearTimeout(placeID);
     makeHold(curPiece);
@@ -801,6 +856,7 @@ function hold(){
             holdPiece = newPieceID;
             lockMoves = 0;
             startLockout = false;
+            drawGhost();
             fallID = setTimeout(()=>{
                 fall();
             },gravityTime)
@@ -810,6 +866,7 @@ function hold(){
     }
 }
 function resetBoard(){
+    removeGhost();
     curx = 0;
     cury = 0;
     curPiece = 0;
@@ -866,6 +923,7 @@ function run(){
         makeQueue();
         lockMoves = 0;
         startLockout = false;
+        drawGhost();
         fallID = setTimeout(()=>{
             fall();
         },gravityTime)
