@@ -1105,5 +1105,5 @@ for (let i = 0; i<5; i++){
 for (let i = 0; i<7; i++){
     minBoxes.push(findMinBox(pieces[i][0]));
 }
-
-run()
+save();
+run();
