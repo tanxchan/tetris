@@ -626,41 +626,45 @@ function rotate(n){
         }
         //console.log(filledCorners);
     }
-    // for (let i = 0; i<pieceDim; i++){
-    //     for (let j = 0; j<pieceDim; j++){
-    //         if (p[i][j] == 1){
-    //             let sx, sy;
-    //             sx = curx-1+i;
-    //             sy = cury-1+j;
-    //             gb[sx][sy].style.backgroundColor = "black";
-    //         }
-    //     }
-    // }
-    pieceMove(curPiece, curx, cury, curRot, newx, newy, false, newRot);
-    // for (let i = 0; i<pieceDim; i++){
-    //     for (let j = 0; j<pieceDim; j++){
-    //         if (np[i][j] == 1){
-    //             let sx, sy;
-    //             sx = newx-1+i;
-    //             sy = newy-1+j;
-    //             gb[sx][sy].style.backgroundColor = pieceColors[curPiece];
-    //         }
-    //     }
-    // }
+    for (let i = 0; i<pieceDim; i++){
+        for (let j = 0; j<pieceDim; j++){
+            if (p[i][j] == 1){
+                let sx, sy;
+                sx = curx-1+i;
+                sy = cury-1+j;
+                gb[sx][sy].style.backgroundColor = "black";
+            }
+        }
+    }
+    //pieceMove(curPiece, curx, cury, curRot, newx, newy, false, newRot);
+    for (let i = 0; i<pieceDim; i++){
+        for (let j = 0; j<pieceDim; j++){
+            if (np[i][j] == 1){
+                let sx, sy;
+                sx = newx-1+i;
+                sy = newy-1+j;
+                gb[sx][sy].style.backgroundColor = pieceColors[curPiece];
+            }
+        }
+    }
     curx = newx;
     cury = newy;
     curRot = newRot;
 
-    // if (startLockout){
-    //     lockMoves++;
-    //     clearTimeout(placeID);
-    //     clearTimeout(fallID);
-    //     if (lockMoves>totalLockoutMoves && checkPieceCollision(np, curx, cury-1)){
-    //         placeID = setTimeout(()=>{placePiece(curPiece,curx,cury,curRot)},lockoutTime);
-    //     }else{
-    //         fallID = setTimeout(()=>{fall()},gravityTime);
-    //     }
-    // }
+    if (startLockout&&!fallMove){
+        clearTimeout(placeID);
+        clearTimeout(fallID);
+        if (checkPieceCollision(np, curx, cury-1)){
+            if (lockMoves>totalLockoutMoves){
+                placeID = setTimeout(()=>{placePiece(curPiece,curx,cury,curRot)},lockoutTime);
+            }else{
+                lockMoves++;
+                fallID = setTimeout(()=>{fall()},gravityTime);
+            }
+        }else{
+            fallID = setTimeout(()=>{fall()},gravityTime);
+        }
+    }
     drawGhost();
     return true;
 }
