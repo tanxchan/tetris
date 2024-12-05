@@ -41,6 +41,9 @@ var queue = [];
 var leftHeld = false;
 var rightHeld = false;
 var downHeld = false;
+var rLeftHeld = false;
+var r180Held = false;
+var rRightHeld = false;
 var rightHold = Date.now();
 var leftHold = Date.now();
 var rightID = '';
@@ -781,13 +784,22 @@ function pieceLeft(){
     }return false;
 }
 function rotateLeft(){
-    rotate(3);
+    if (!rLeftHeld){
+        rLeftHeld = true;
+        return rotate(3);
+    }
 }
 function rotateRight(){
-    rotate(1);
+    if (!rRightHeld){
+        rRightHeld = true;
+        return rotate(1);
+    }
 }
 function rotate180(){
-    rotate(2);
+    if (!r180Held){
+        r180Held = true;
+        return rotate(2);
+    }
 }
 function dashRight(){
     let ny = cury;
@@ -1011,6 +1023,15 @@ function resetDown(){
     clearTimeout(dropID);
     dropID = '';
 }
+function resetRLeft(){
+    rLeftHeld = false;
+}
+function resetRRight(){
+    rRightHeld = false;
+}
+function resetR180(){
+    r180Held = false;
+}
 
 function save(){
     dashTime = parseInt(document.getElementById('das').value);
@@ -1097,6 +1118,11 @@ document.addEventListener('keyup', function(event) {
     "ArrowLeft"  : resetLeft,
     "ArrowRight" : resetRight,
     "ArrowDown"  : resetDown,
+    "ArrowUp"    : resetRRight,
+    "x"          : resetRRight,
+    "z"          : resetRLeft,
+    "Shift"      : resetR180,
+    "a"          : resetR180,
 }[event.key]
 
 callback?.() // "ArrowRight", "ArrowLeft", "ArrowUp", or "ArrowDown"
