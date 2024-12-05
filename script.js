@@ -5,16 +5,23 @@ var gbscolors = [];
 var displayQueue = [];
 var minBoxes = [];
 
-const dashTime = 200;//should be mutable
+var dashTime = 67;//should be mutable
 const pieceDim = 4;
 const totalRows = 23;
 const totalCols = 10;
-const gravityTime = 500;
+const defaultGravity = 1000;
 const totalLockoutMoves = 10;
+const lockoutTime = 500;
+var sdf = 5;//time between soft drops
+var softDropTime = gravityTime/sdf;
+var gravityForce = 2;
+var gravityTime = defaultGravity/gravityForce;
 
 //piece vars
 var curx = 0;
-var gx = 0;
+// var gx = 0;
+// var gy = 0;
+var ghostSquares = [];
 var cury = 0;
 var curPiece = 0;
 var curRot = 0;
@@ -33,18 +40,30 @@ var queue = [];
 //movement var
 var leftHeld = false;
 var rightHeld = false;
+var downHeld = false;
 var rightHold = Date.now();
 var leftHold = Date.now();
 var rightID = '';
 var leftID = '';
+var dropID = '';
+
 //todo:
-// - show queue
+// x- show queue
 // - make queue efficient (dequeue first element and append to end)
-// - hold piece
-// - spin table
-// - fix soft drop
-// - make clearlines more efficient
-// - make a ghost piece
+// x- hold piece
+// x- spin table
+// x- fix soft drop
+// x- make clearlines more efficient
+// x- make a ghost piece
+// - two tspins are broken
+// x- mutable parameters(need to make website input)
+// - pieces can float bc of lockout
+// - add timer/stopwatch -- 40 lines mode
+// - add cheese race
+// - add score
+// x- increase gravity scaling
+// x- fix all the piece glitching too
+// - mutable controls
 
 for (let i = 0; i<totalRows; i++){
     let g = [];
@@ -607,50 +626,50 @@ function rotate(n){
         }
         //console.log(filledCorners);
     }
-    removeGhost();
-    for (let i = 0; i<pieceDim; i++){
-        for (let j = 0; j<pieceDim; j++){
-            if (p[i][j] == 1){
-                let sx, sy;
-                sx = curx-1+i;
-                sy = cury-1+j;
-                gb[sx][sy].style.backgroundColor = "black";
-            }
-        }
-    }
-    
-    for (let i = 0; i<pieceDim; i++){
-        for (let j = 0; j<pieceDim; j++){
-            if (np[i][j] == 1){
-                let sx, sy;
-                sx = newx-1+i;
-                sy = newy-1+j;
-                gb[sx][sy].style.backgroundColor = pieceColors[curPiece];
-            }
-        }
-    }
+    // for (let i = 0; i<pieceDim; i++){
+    //     for (let j = 0; j<pieceDim; j++){
+    //         if (p[i][j] == 1){
+    //             let sx, sy;
+    //             sx = curx-1+i;
+    //             sy = cury-1+j;
+    //             gb[sx][sy].style.backgroundColor = "black";
+    //         }
+    //     }
+    // }
+    pieceMove(curPiece, curx, cury, curRot, newx, newy, false, newRot);
+    // for (let i = 0; i<pieceDim; i++){
+    //     for (let j = 0; j<pieceDim; j++){
+    //         if (np[i][j] == 1){
+    //             let sx, sy;
+    //             sx = newx-1+i;
+    //             sy = newy-1+j;
+    //             gb[sx][sy].style.backgroundColor = pieceColors[curPiece];
+    //         }
+    //     }
+    // }
     curx = newx;
     cury = newy;
-    curRot = (curRot+n)%4
+    curRot = newRot;
 
-    if (startLockout){
-        lockMoves++;
-        clearTimeout(placeID);
-        clearTimeout(fallID);
-        if (lockMoves>totalLockoutMoves && checkPieceCollision(np, curx, cury-1)){
-            placeID = setTimeout(()=>{placePiece(curPiece,curx,cury,curRot)},gravityTime);
-        }else{
-            fallID = setTimeout(()=>{fall()},gravityTime);
-        }
-    }
+    // if (startLockout){
+    //     lockMoves++;
+    //     clearTimeout(placeID);
+    //     clearTimeout(fallID);
+    //     if (lockMoves>totalLockoutMoves && checkPieceCollision(np, curx, cury-1)){
+    //         placeID = setTimeout(()=>{placePiece(curPiece,curx,cury,curRot)},lockoutTime);
+    //     }else{
+    //         fallID = setTimeout(()=>{fall()},gravityTime);
+    //     }
+    // }
     drawGhost();
     return true;
 }
-function pieceMove(n, x, y, r, newx, newy){
-    if (lockMoves>totalLockoutMoves){
+function pieceMove(n, x, y, r, newx, newy, fallMove = false, newr = curRot){
+    if (lockMoves>totalLockoutMoves&&!fallMove){
         return false;
     }
     let p = pieces[n][r];
+    let np = pieces[n][newr];
     if (!checkPieceCollision(p,newx-1,newy-1)){
         //console.log('collided')
         return false;
@@ -668,7 +687,7 @@ function pieceMove(n, x, y, r, newx, newy){
     
     for (let i = 0; i<pieceDim; i++){
         for (let j = 0; j<pieceDim; j++){
-            if (p[i][j] == 1){
+            if (np[i][j] == 1){
                 let sx, sy;
                 sx = newx-1+i;
                 sy = newy-1+j;
@@ -676,21 +695,41 @@ function pieceMove(n, x, y, r, newx, newy){
             }
         }
     }
-    removeGhost();
-    if (startLockout){
-        lockMoves++;
+    if (startLockout&&!fallMove){
         clearTimeout(placeID);
         clearTimeout(fallID);
-        if (lockMoves>totalLockoutMoves && checkPieceCollision(np, curx, cury-1)){
-            placeID = setTimeout(()=>{placePiece(curPiece,curx,cury,curRot)},gravityTime);
+        if (checkPieceCollision(np, curx, cury-1)){
+            if (lockMoves>totalLockoutMoves){
+                placeID = setTimeout(()=>{placePiece(curPiece,curx,cury,curRot)},lockoutTime);
+            }else{
+                lockMoves++;
+                fallID = setTimeout(()=>{fall()},gravityTime);
+            }
         }else{
             fallID = setTimeout(()=>{fall()},gravityTime);
         }
     }
     return true;
 }
-function pieceDown(){
-    if (pieceMove(curPiece, curx, cury, curRot, curx+1, cury)){
+function downLoop(){
+    pieceDown();
+    dropID = setTimeout(()=>{
+        downLoop();
+    }, softDropTime);
+}
+function softDrop(){
+    if (sdf == -1){
+        dashDown();
+        return true;
+    }
+    if (downHeld){
+        return false;
+    }
+    downHeld = true;
+    downLoop();
+}
+function pieceDown(fallMove = false){
+    if (pieceMove(curPiece, curx, cury, curRot, curx+1, cury, fallMove, curRot)){
         curx++;
         drawGhost();
         return true;
@@ -752,8 +791,9 @@ function dashRight(){
     while (checkPieceCollision(p, curx-1, ny-1)){
         ny++;
     }
-    pieceMove(curPiece, curx, cury, curRot, curx, ny-1);
-    cury = ny-1;
+    if (pieceMove(curPiece, curx, cury, curRot, curx, ny-1)){
+        cury = ny-1;
+    }
     drawGhost();
 }
 function dashLeft(){
@@ -762,30 +802,46 @@ function dashLeft(){
     while (checkPieceCollision(p, curx-1, ny-1)){
         ny--;
     }
-    pieceMove(curPiece, curx, cury, curRot, curx, ny+1);
-    cury = ny+1;
+    if (pieceMove(curPiece, curx, cury, curRot, curx, ny+1)){
+        cury = ny+1;
+    }
     drawGhost();
 }
 function removeGhost(){
-    let p = pieces[curPiece][curRot];
-    for (let i = 0; i<pieceDim; i++){
-        for (let j = 0; j<pieceDim; j++){
-            if (p[i][j] == 1){
-                let sx, sy;
-                sx = gx-1+i;
-                sy = cury-1+j;
-                gb[sx][sy].style.borderColor = "transparent";
-            }
-        }
+    //return false;
+    // console.log(curx,cury, gx, gy)
+    // let p = pieces[curPiece][curRot];
+    
+    // console.log(p)
+    // for (let i = 0; i<pieceDim; i++){
+    //     for (let j = 0; j<pieceDim; j++){
+    //         if (p[i][j] == 1){
+    //             console.log(i,j);
+    //             let sx, sy;
+    //             sx = gx-1+i;
+    //             sy = gy-1+j;
+    //             //console.log(sx, sy)
+    //             gb[sx][sy].style.borderColor = "transparent";
+    //         }
+    //     }
+    // }
+    for (let i = 0; i<ghostSquares.length; i++){
+        let gs = ghostSquares[i]
+        gb[gs[0]][gs[1]].style.borderColor = "transparent";
     }
 }
 function drawGhost(){
+    removeGhost();
     let nx = curx;
     let p = pieces[curPiece][curRot];
     while (checkPieceCollision(p, nx-1, cury-1)){
         nx++;
     }
     let fx = nx-1;
+    if (fx == curx){
+        return false;
+    }
+    ghostSquares = [];
     for (let i = 0; i<pieceDim; i++){
         for (let j = 0; j<pieceDim; j++){
             if (p[i][j] == 1){
@@ -793,10 +849,14 @@ function drawGhost(){
                 sx = fx-1+i;
                 sy = cury-1+j;
                 gb[sx][sy].style.borderColor = pieceColors[curPiece];
+                ghostSquares.push([sx,sy]);
             }
         }
     }
-    gx = fx;
+
+    // gx = fx;
+    // gy = cury;
+    // console.log(gx,fx,gy,cury)
     return fx;
 }
 function dashDown(){
@@ -805,8 +865,9 @@ function dashDown(){
     while (checkPieceCollision(p, nx-1, cury-1)){
         nx++;
     }
-    pieceMove(curPiece, curx, cury, curRot, nx-1, cury);
-    curx = nx-1;
+    if(pieceMove(curPiece, curx, cury, curRot, nx-1, cury)){
+        curx = nx-1;
+    }
 }
 function hardDrop(){
     //moving = true;
@@ -815,6 +876,7 @@ function hardDrop(){
     while (checkPieceCollision(p, nx-1, cury-1)){
         nx++;
     }
+    lockMoves = 0;
     pieceMove(curPiece, curx, cury, curRot, nx-1, cury);
     curx = nx-1;
     //setTimeout(()=>{
@@ -903,7 +965,7 @@ function resetBoard(){
 }
 function fall(){
     //console.log('falling')
-    if (pieceDown() && !moving){
+    if (pieceDown(true) && !moving){
         fallID = setTimeout(()=>{
             fall();
         }, gravityTime)
@@ -911,13 +973,14 @@ function fall(){
         //console.log('fell');
         placeID = setTimeout(()=>{
             placePiece(curPiece, curx, cury, curRot);
-        },gravityTime)
+        },lockoutTime)
         startLockout = true;
     }
 }
 function run(){
     clearTimeout(fallID)
     clearTimeout(placeID)
+    resetDown();
     tspin = false;
     if (rspawn()){
         makeQueue();
@@ -939,6 +1002,51 @@ function resetLeft(){
     leftHeld = false;
     clearTimeout(leftID);
 }
+function resetDown(){
+    downHeld = false;
+    clearTimeout(dropID);
+    dropID = '';
+}
+
+function save(){
+    dashTime = parseInt(document.getElementById('das').value);
+    sdf = parseInt(document.getElementById('sdf').value);
+    gravityForce = parseFloat(document.getElementById('gf').value);
+    gravityTime = defaultGravity/gravityForce;
+    softDropTime = gravityTime/sdf;
+    if (sdf>30){
+        softDropTime = softDropTime-10;
+    }
+    if (sdf>45){
+        sdf = -1;
+        document.getElementById('sdf').value = -1;
+    }
+    toggleMenu();
+}
+function showMenu(){
+    document.getElementsByClassName('menu')[0].style.display = 'flex';
+}
+function hideMenu(){
+    document.getElementsByClassName('menu')[0].style.display = 'none';
+}
+function toggleMenu(){
+    if (document.getElementsByClassName('menu')[0].style.display=='none'){
+        showMenu();
+    }else{
+        hideMenu();
+    }
+}
+function toggleGuide(){
+    if (document.getElementsByClassName('menu')[1].style.display=='none'){
+        document.getElementsByClassName('menu')[1].style.display = 'flex';
+    }else{
+        document.getElementsByClassName('menu')[1].style.display = 'none';
+    }
+}
+
+document.getElementsByClassName('settings-button')[0].addEventListener('click', toggleMenu);
+document.getElementsByClassName('guide-button')[0].addEventListener('click', toggleGuide);
+document.getElementsByClassName('save-button')[0].addEventListener('click', save);
 
 document.addEventListener('keydown', function(event) {
     const callback = {
@@ -948,7 +1056,8 @@ document.addEventListener('keydown', function(event) {
     "z"          : rotateLeft,
     "x"          : rotateRight,
     "Shift"      : rotate180,
-    "ArrowDown"  : pieceDown,
+    "a"          : rotate180,
+    "ArrowDown"  : softDrop,
     " "          : hardDrop,
     "r"          : resetBoard,
     "c"          : hold,
@@ -983,6 +1092,7 @@ document.addEventListener('keyup', function(event) {
     const callback = {
     "ArrowLeft"  : resetLeft,
     "ArrowRight" : resetRight,
+    "ArrowDown"  : resetDown,
 }[event.key]
 
 callback?.() // "ArrowRight", "ArrowLeft", "ArrowUp", or "ArrowDown"

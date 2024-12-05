@@ -5,7 +5,7 @@
 }
 .header{
     height:fit-content;
-    width:var(--width);
+    width:calc(var(--width)*2);
     display:flex;
     flex-direction: row;
     margin:auto;
@@ -15,9 +15,16 @@
     height:calc(var(--draw-piece)*4);
     width:calc(var(--draw-piece)*4);
     justify-content: stretch;
+    padding-right:calc(var(--draw-piece)*2);
 }
 p{
     font-size: calc(var(--draw-piece));
+    margin:0px;
+    padding:0px;
+}
+.header p{
+    margin:inherit;
+    padding:inherit;
 }
 .game-container{
     height:fit-content;
@@ -73,6 +80,80 @@ p{
     border-style:solid;
     border-color:transparent;
 }
+.fancy-link{
+    text-decoration: none;
+    cursor:pointer;
+    color:red;
+    transition-duration:300ms;
+}
+.fancy-link:hover{
+    color:green;
+}
+.menu{
+    display:none;
+    flex-direction:column;
+    position:fixed;
+    margin:auto;
+    padding:calc(var(--height)*0.05);
+    border-radius:calc(var(--height)*0.05);
+    width:fit-content;
+    height:fit-content;
+    background-color:gray;
+    opacity:0.9;
+    z-index: 10;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.movement-item{
+    display:grid;
+    grid-template-columns: calc(var(--draw-piece)*10) 1fr calc(var(--draw-piece)*15);
+    grid-template-rows: 1fr;
+}
+.settings-button, .guide-button{
+    display:flex;
+    user-select: none;
+    background-color: gray;
+    font-size: calc(var(--draw-piece)*2.5);
+    color:rgb(62, 212, 43);
+    height:calc(var(--draw-piece)*3);
+    width: calc(var(--draw-piece)*3);
+    /* vertical-align: middle; */
+    align-items:center;
+    justify-content: center;
+    /* text-align:center; */
+    padding:5px;
+    border-radius:6px;
+    margin-top:auto;
+    margin-bottom:auto;
+    margin-left:calc(var(--draw-piece)*0.5);
+    cursor:pointer;
+}
+.settings-button p{
+    /* margin:auto; */
+}
+.save-button{
+    user-select: none;
+    background-color: rgb(70, 70, 70);
+    height:fit-content;
+    width: fit-content;
+    padding:5px;
+    border-radius:6px;
+    margin:auto;
+}
+.save-button p{
+    padding:0px;
+    margin:0px;
+}
+.footer{
+    display:inline-block;
+    position:fixed;
+    bottom:0%;
+    padding:2vh;
+    width:100vw;
+    background-color:lightgray;
+}
+
 @media (max-height:500px){
     :root{
         --height: 70vh;

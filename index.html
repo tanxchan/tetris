@@ -12,6 +12,8 @@
         <meta name="description" content="discount tetris">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="styles.css">
+        <link href="https://fonts.cdnfonts.com/css/clear-sans" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     </head>
     <body>
         <!--[if lt IE 7]>
@@ -20,12 +22,50 @@
         <div class="header">
             <img class="logo" src="favicon.ico">
             <p>a game by tiancheng</p>
+            <div class="settings-button"><i class="fa fa-gear"></i></div>
+            <div class="guide-button"><i class="fa fa-question-circle"></i></div>
         </div>
         <div class="game-container">
             <div class="hold"></div>
             <div class="main-board" id="board">
             </div>
             <div class="queue">
+            </div>
+        </div>
+        <div class="menu">
+                <p>DAS:</p><input type="text" name="dashTime" value="200" id="das"><br>
+                <p>SDF(-1=instant):</p><input type="text" name="softDropForce" value="5" id="sdf"><br>
+                <p>Gravity:</p><input type="text" name="gravityForce" value="2" id="gf"><br>
+                <div class="save-button"><p>Save</p></div>
+        </div>
+        <div class="menu">
+            <p>
+                Welcome to Tiantris! I wrote this in 10 hours over the course of around 20 world periods.
+                Controls:</p>
+                <div class="movement-item"><p>ArrowLeft</p><p>:</p><p>move piece left</p></div>
+                <div class="movement-item"><p>ArrowRight</p><p>:</p><p>move piece right</p></div>
+                <div class="movement-item"><p>z, ArrowUp</p><p>:</p><p>rotate clockwise</p></div>
+                <div class="movement-item"><p>x</p><p>:</p><p>rotate counterclockwise</p></div>
+                <div class="movement-item"><p>a,Shift</p><p>:</p><p>rotate 180</p></div>
+                <div class="movement-item"><p>Space Bar</p><p>:</p><p>hard drop</p></div>
+                <div class="movement-item"><p>r</p><p>:</p><p>reset the board</p></div>
+                <div class="movement-item"><p>c</p><p>:</p><p>swap hold piece</p></div>
+            <p>
+                You can change the game settings in the settings menu. <br>
+                Current To-do list:
+                 - add 40 lines, cheese race
+                 - mutable controls
+                 - fix 2 tspins that are broken
+                 - fix floating piece bugs
+                 - mobile controls?<br>
+                Suggestions, Comments, or Concerns? DM me or smth<br>(contact info on 
+                <a class="fancy-link" href="https://tanxchan.github.io/xyz/" target = "_blank">website</a>)
+                <br>Click the question mark again to get rid of this popup
+            </p>
+        </div>
+        <div class="footer">
+            <div class="desc">
+                <p>Written in <a class="fancy-link" href="https://https://github.com/tanxchan/2048" target="_blank">HTML, CSS, and JS</a> by <a class="fancy-link" href="https://tanchan.xyz" target="_blank">Tiancheng Shao</a></p>
             </div>
         </div>
         <script src="script.js" async defer></script>
