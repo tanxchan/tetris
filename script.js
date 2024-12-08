@@ -286,6 +286,55 @@ let SRSWallKickI = [
     [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
     [[0,0],[1,0],[-2,0],[1,-2],[-2,1]],
 ]
+function deleteAllCookies() {//stolen oop
+    document.cookie.split(';').forEach(cookie => {
+        const eqPos = cookie.indexOf('=');
+        const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
+        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    });
+}
+function saveCookies(){//save the settings of the game
+    //add saving the actual game later?
+    document.cookie = "dashTime="+dashTime+';';
+    document.cookie = 'sdf='+sdf+';';
+    document.cookie = 'gravityForce='+gravityForce+';';
+}
+function readCookie(cookieString){
+    try {
+        let c = document.cookie;
+        let n1 = c.search(cookieString)+cookieString.length;
+        let n2 = c.length;
+        for (let i = n1; i<c.length; i++){
+            if (c[i] == ';'){
+                n2 = i+1;
+                break;
+            }
+        }
+        let s = c.substring(n1, n2);
+        return s;
+    }
+    catch{
+        return '';
+    }
+}
+function readCookies(){
+    let ndt = readCookie('dashTime=');
+    let nsdf = readCookie('sdf=');
+    let ngf = readCookie('gravityForce=');
+    if (ndt.length==0 || nsdf.length==0||ngf.length==0){
+        return false;
+    }
+    dashTime = parseInt(ndt);
+    sdf = parseInt(nsdf);
+    gravityForce = parseFloat(ngf);
+    gravityTime = defaultGravity/gravityForce;
+    softDropTime = gravityTime/sdf;
+
+    document.getElementById('das').value = dashTime;
+    document.getElementById('sdf').value = sdf;
+    document.getElementById('gf').value = ngf;
+}
+
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -653,6 +702,7 @@ function rotate(n){
     curx = newx;
     cury = newy;
     curRot = newRot;
+    drawGhost();
 
     if (startLockout&&!fallMove){
         clearTimeout(placeID);
@@ -662,13 +712,12 @@ function rotate(n){
                 placeID = setTimeout(()=>{placePiece(curPiece,curx,cury,curRot)},lockoutTime);
             }else{
                 lockMoves++;
-                fallID = setTimeout(()=>{fall()},gravityTime);
+                fallID = setTimeout(()=>{fall()},lockoutTime);
             }
         }else{
-            fallID = setTimeout(()=>{fall()},gravityTime);
+            fallID = setTimeout(()=>{fall()},lockoutTime);
         }
     }
-    drawGhost();
     return true;
 }
 function pieceMove(n, x, y, r, newx, newy, fallMove = false, newr = curRot){
@@ -710,10 +759,10 @@ function pieceMove(n, x, y, r, newx, newy, fallMove = false, newr = curRot){
                 placeID = setTimeout(()=>{placePiece(curPiece,curx,cury,curRot)},lockoutTime);
             }else{
                 lockMoves++;
-                fallID = setTimeout(()=>{fall()},gravityTime);
+                fallID = setTimeout(()=>{fall()},lockoutTime);
             }
         }else{
-            fallID = setTimeout(()=>{fall()},gravityTime);
+            fallID = setTimeout(()=>{fall()},lockoutTime);
         }
     }
     return true;
@@ -1072,6 +1121,16 @@ function toggleGuide(){
 document.getElementsByClassName('settings-button')[0].addEventListener('click', toggleMenu);
 document.getElementsByClassName('guide-button')[0].addEventListener('click', toggleGuide);
 document.getElementsByClassName('save-button')[0].addEventListener('click', save);
+
+window.addEventListener('load', ()=>{
+    console.log('loaded')
+    //alert('hello there')
+    readCookies();
+})
+window.addEventListener('beforeunload', ()=>{
+    deleteAllCookies();
+    saveCookies();
+})
 
 document.addEventListener('keydown', function(event) {
     const callback = {
